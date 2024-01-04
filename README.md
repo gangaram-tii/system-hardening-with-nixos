@@ -8,6 +8,7 @@ For an effectively hardened system, it is advisable to adopt a role-based authen
 
 To strengthen the authentication process, there are several best practices to follow, such as strong password policy, forcing privileged users to use multi-factor authentication, and using SSH keys for remote access. Additionally, implementing temporary account suspension after multiple failed login attempts can prevent unauthorized access.
 
+### Enforce Strong Password
 To enforce strong passwords in NixOS, one can use the pam_pwquality.so module. This module provides a way to enforce password complexity requirements such as minimum length, complexity, and history.
 
 Here is an example of how to configure pam_pwquality.so in NixOS:
@@ -43,3 +44,8 @@ This configuration enforces the following password requirements:
 - Passwords cannot contain the user’s name or username
 
 You can modify these settings to suit your needs.
+
+### Enable Multifactor Authentication (MFA)
+NixOS provides following methods for MFA:
+- **YubiKey:** Physical hardware token for secure authentication.
+- **Time-based One-Time Passwords (TOTP):** Apps like Google Authenticator generate rotating codes.
