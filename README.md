@@ -49,3 +49,16 @@ You can modify these settings to suit your needs.
 NixOS provides following methods for MFA:
 - **YubiKey:** Physical hardware token for secure authentication.
 - **Time-based One-Time Passwords (TOTP):** Apps like Google Authenticator generate rotating codes.
+To enable MFA, configure necessary PAM module.
+
+**For YubiKey:**
+```Nix
+security.pam.yubico.enable = true;
+security.pam.yubico.control = "required";  # Enforce MFA for all logins
+```
+
+**For TOTP:**
+```Nix
+security.pam.google-authenticator.enable = true;
+security.pam.google-authenticator.control = "required"; # Enforce MFA for all logins
+```
