@@ -71,3 +71,33 @@ To strengthen system security, consider restricting or disabling remote access m
 - **Use Strong Authentication for Remaining Access:** If remote login cannot be disabled, replace password authentication with key-based access using SSH keys. SSH keys offer significantly enhanced security compared to passwords, rendering brute-force attacks impractical.
 
 - **Elevate User Privileges Only When Necessary:** Avoid granting remote access with root privileges. Instead, assign users the minimum access level required for their tasks. This principle of least privilege minimizes potential damage caused by compromised credentials.
+
+In NixOS following configuration can be used to controll remote access:
+
+```Nix
+services.openssh = {
+  enable = true;
+  # require public key authentication for better security
+  settings.PasswordAuthentication = false;
+  # keyboard-interactive authentication is disallowed.
+  settings.KbdInteractiveAuthentication = false;
+  # disable root login
+  settings.PermitRootLogin = "no";
+};
+```
+Use following configuration to setup ssh keys:
+
+We can also store the public keys in /etc/nixos/configuration.nix:
+
+```Nix
+users.users."user".openssh.authorizedKeys.keys = [
+  "ssh-rsa AAAAB3Nz....6OWM= user" # content of authorized_keys file
+];
+```
+or use a custom path for the authorized_keys file:
+
+```Nix
+users.users."user".openssh.authorizedKeys.keyFiles = [
+  /etc/nixos/ssh/authorized_keys
+];
+```
