@@ -36,9 +36,10 @@ security.pam.services.passwd = {
 
 This configuration enforces the following password requirements:
 
-Minimum length of 12 characters
-At least 6 characters must be different from the previous password
-At least one digit, one uppercase letter, and one lowercase letter
-At least one special character
-Passwords cannot contain the user’s name or username
-You can modify these settings to suit your needs 
+- Minimum length of 12 characters
+- At least 6 characters must be different from the previous password
+- At least one digit, one uppercase letter, and one lowercase letter
+- At least one special character
+- Passwords cannot contain the user’s name or username
+
+You can modify these settings to suit your needs.
