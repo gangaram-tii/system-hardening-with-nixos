@@ -62,3 +62,12 @@ security.pam.yubico.control = "required";  # Enforce MFA for all logins
 security.pam.google-authenticator.enable = true;
 security.pam.google-authenticator.control = "required"; # Enforce MFA for all logins
 ```
+
+## Remote Access
+To strengthen system security, consider restricting or disabling remote access mechanisms. Here are some recommendations:
+
+- **Prioritize Disabling Remote Login:** Aim to eliminate remote login whenever possible. This completely removes an attack vector and simplifies security management.
+
+- **Use Strong Authentication for Remaining Access:** If remote login cannot be disabled, replace password authentication with key-based access using SSH keys. SSH keys offer significantly enhanced security compared to passwords, rendering brute-force attacks impractical.
+
+- **Elevate User Privileges Only When Necessary:** Avoid granting remote access with root privileges. Instead, assign users the minimum access level required for their tasks. This principle of least privilege minimizes potential damage caused by compromised credentials.
