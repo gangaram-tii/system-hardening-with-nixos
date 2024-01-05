@@ -63,7 +63,7 @@ Furthermore, NixOS supports atomic upgrades and rollbacks, allowing for seamless
 
 One should consider the following guidelines when implementing system hardening measures:
 
-## Authentication
+## 1. Authentication
 
 Authentication plays a crucial role in safeguarding any system from potential threats. Before granting access to resources or data, it is essential to verify a user's identity to ensure authorized use of the system. Inadequate authentication measures can lead to severe consequences such as data breaches and security incidents. 
 
@@ -71,7 +71,7 @@ For an effectively hardened system, it is advisable to adopt a role-based authen
 
 To strengthen the authentication process, there are several best practices to follow, such as strong password policy, forcing privileged users to use multi-factor authentication, and using SSH keys for remote access. Additionally, implementing temporary account suspension after multiple failed login attempts can prevent unauthorized access.
 
-### Enforce Strong Password
+### 1.1 Enforce Strong Password
 To enforce strong passwords in NixOS, one can use the pam_pwquality.so module. This module provides a way to enforce password complexity requirements such as minimum length, complexity, and history.
 
 Here is an example of how to configure pam_pwquality.so in NixOS:
@@ -108,7 +108,7 @@ This configuration enforces the following password requirements:
 
 You can modify these settings to suit your needs.
 
-### Enable Multifactor Authentication (MFA)
+### 1.2 Enable Multifactor Authentication (MFA)
 NixOS provides following methods for MFA:
 - **YubiKey:** Physical hardware token for secure authentication.
 - **Time-based One-Time Passwords (TOTP):** Apps like Google Authenticator generate rotating codes.
@@ -126,7 +126,7 @@ security.pam.google-authenticator.enable = true;
 security.pam.google-authenticator.control = "required"; # Enforce MFA for all logins
 ```
 
-## Remote Access
+## 2. Remote Access
 To strengthen system security, consider restricting or disabling remote access mechanisms. Here are some recommendations:
 
 - **Prioritize Disabling Remote Login:** Aim to eliminate remote login whenever possible. This completely removes an attack vector and simplifies security management.
@@ -165,7 +165,7 @@ users.users."user".openssh.authorizedKeys.keyFiles = [
 ];
 ```
 
-## Remove Unnecessary Software
+## 3. Remove Unnecessary Software
 
 While the addition of new software may appear enticing, it's crucial to recognize that not all packages are essential for your system's functionality. The more packages, software, libraries, and third-party repositories you incorporate, the larger the attack surface becomes, increasing the potential for security vulnerabilities. 
 
@@ -196,3 +196,45 @@ Here is an example of a NixOS configuration that serves as a starting point for 
   xdg.sounds.enable = false;
 }
 ```
+## 4. Restrict Network Access
+Network access restriction involved controlling access of data to and from network to enhance security. Firewalls are a fundamental tool for restricting network traffic. They can be implemented at the network perimeter, between network segments, or on individual devices. Firewalls enforce access control policies based on rules, allowing or denying traffic based on factors like source IP, destination IP, port numbers, and protocols.
+
+NixOS provides an interface to configure the firewall through the option `networking.firewall`.
+
+The default firewall uses iptables. To use the newer nftables instead, additionally set 'networking.nftables.enable = true;'
+To explicitly enable it add the following into your NixOS configuration: 
+
+```Nix
+networking.firewall.enable = true;
+```
+To allow specific TCP/UDP ports or port ranges on all interfaces, use following syntax: 
+
+```Nix
+networking.firewall = {
+  enable = true;
+  allowedTCPPorts = [ 80 43 ];
+  allowedUDPPortRanges = [
+    { from = 4000; to = 4001; }
+    { from = 8000; to = 8002; }
+  ];
+};
+```
+
+Interface-specific firewall rules can be applied like this:
+
+```Nix
+networking.firewall.interfaces."eth0".allowedTCPPorts = [ 80 443 ];
+```
+
+In NixOS many services also provide an option to open the required firewall ports automatically. For example, the media server Jellyfin offers the option 
+
+```Nix
+services.jellyfin.openFirewall = true;
+```
+
+which will open the required TCP ports. 
+Firewall rules may be over written by docker container. So one should use these configurations carefully.  
+
+You can craft IPTables rules to permit or deny packets to/from specific IP addresses. For NixOS Firewall options, refer to the link provided below:
+
+[NixOS Firewall Options](https://mynixos.com/nixpkgs/options/networking.firewall)
