@@ -164,3 +164,35 @@ users.users."user".openssh.authorizedKeys.keyFiles = [
   /etc/nixos/ssh/authorized_keys
 ];
 ```
+
+## Remove Unnecessary Software
+
+While the addition of new software may appear enticing, it's crucial to recognize that not all packages are essential for your system's functionality. The more packages, software, libraries, and third-party repositories you incorporate, the larger the attack surface becomes, increasing the potential for security vulnerabilities. 
+
+NixOS offers a minimal profile for constructing NixOS images, although it does not achieve absolute minimalism. It is advisable to prune unnecessary packages from the Nix store. The Nix garbage collector is a valuable tool that can identify and eliminate packages that are not in active use. Shared libraries often come bundled in a package, with many of them potentially unnecessary for the application. It is recommended to discern and remove such redundant libraries.
+
+Here is an example of a NixOS configuration that serves as a starting point for a minimal system.
+
+```Nix
+{
+  imports = [
+    <nixpkgs/nixos/modules/profiles/headless.nix>  # For Headless system
+    <nixpkgs/nixos/modules/profiles/minimal.nix>   # Minimal NixOS profile
+  ];
+
+  # only add strictly necessary modules
+  boot.kernelModules = [];
+  boot.initrd.includeDefaultModules = false;
+  boot.initrd.kernelModules = [];  # Add necessary kernel modules here
+  disabledModules =
+    [ <nixpkgs/nixos/modules/profiles/all-hardware.nix>
+      <nixpkgs/nixos/modules/profiles/base.nix>
+    ];
+
+  # disable useless software
+  environment.defaultPackages = [];  # Add necessary packages here
+  xdg.icons.enable  = false;
+  xdg.mime.enable   = false;
+  xdg.sounds.enable = false;
+}
+```
