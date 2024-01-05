@@ -255,7 +255,7 @@ To override the kernel configuration in NixOS, you can utilize the `boot.kernelP
 ```Nix
 boot.kernelPatches = [
     {
-      name = "crashdump-config";
+      name = "disable-usb-storage-config";
       patch = null;
       extraConfig = ''
         USB_NET_DRIVERS n
