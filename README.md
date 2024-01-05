@@ -240,7 +240,7 @@ You can craft IPTables rules to permit or deny packets to/from specific IP addre
 
 [NixOS Firewall Options](https://mynixos.com/nixpkgs/options/networking.firewall)
 
-## Restrict access of USB interface
+## 5. Restrict access of USB interface
 
 Depending on the criticality of your system, there are instances where it becomes necessary to restrict the usage of USB sticks on a Linux host. There are several methods to prevent the use of USB storage, and a simple one is as follows:
 You can configure USB interface from kernel configuration based on the requirement:
