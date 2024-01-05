@@ -232,8 +232,9 @@ In NixOS many services also provide an option to open the required firewall port
 services.jellyfin.openFirewall = true;
 ```
 
-which will open the required TCP ports. 
-Firewall rules may be over written by docker container. So one should use these configurations carefully.  
+which will open the required TCP ports.
+
+Firewall rules may be over written by docker containers too. So one should use these configurations carefully.  
 
 You can craft IPTables rules to permit or deny packets to/from specific IP addresses. For NixOS Firewall options, refer to the link provided below:
 
