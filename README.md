@@ -239,3 +239,28 @@ Firewall rules may be over written by docker containers too. So one should use t
 You can craft IPTables rules to permit or deny packets to/from specific IP addresses. For NixOS Firewall options, refer to the link provided below:
 
 [NixOS Firewall Options](https://mynixos.com/nixpkgs/options/networking.firewall)
+
+## Restrict access of USB interface
+
+Depending on the criticality of your system, there are instances where it becomes necessary to restrict the usage of USB sticks on a Linux host. There are several methods to prevent the use of USB storage, and a simple one is as follows:
+You can configure USB interface from kernel configuration based on the requirement:
+- To disable USB interface set 'CONFIG_USB_SUPPORT=n' 
+- To disable only USB network adapter set 'CONFIG_USB_NET_DRIVERS=n'
+- To disable only USB mass storage set 'CONFIG_USB_STORAGE=n'
+- To disable only USB serial port set 'CONFIG_USB_SERIAL=n'
+
+For each type of USB device, a corresponding configuration is available, and it can be disabled in the kernel configuration.
+
+To override the kernel configuration in NixOS, you can utilize the `boot.kernelPatches` attribute. An example for disabling USB mass storage is provided below:
+```Nix
+boot.kernelPatches = [
+    {
+      name = "crashdump-config";
+      patch = null;
+      extraConfig = ''
+        USB_NET_DRIVERS n
+      '';
+    }
+  ];
+
+```
