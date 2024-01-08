@@ -280,3 +280,41 @@ SELinux assigns a security label to every file and process on the system. It sto
 ```Nix
 security.apparmor.enable = true;
 ```
+
+
+```Nix
+    security.apparmor.policies."bin.transmission-daemon".profile = ''
+      include "${cfg.package.apparmor}/bin.transmission-daemon"
+    '';
+    security.apparmor.includes."local/bin.transmission-daemon" = ''
+      r ${config.systemd.services.transmission.environment.CURL_CA_BUNDLE},
+
+      owner rw ${cfg.home}/${settingsDir}/**,
+      rw ${cfg.settings.download-dir}/**,
+      ${optionalString cfg.settings.incomplete-dir-enabled ''
+        rw ${cfg.settings.incomplete-dir}/**,
+      ''}
+      ${optionalString cfg.settings.watch-dir-enabled ''
+        r${optionalString cfg.settings.trash-original-torrent-files "w"} ${cfg.settings.watch-dir}/**,
+      ''}
+      profile dirs {
+        rw ${cfg.settings.download-dir}/**,
+        ${optionalString cfg.settings.incomplete-dir-enabled ''
+          rw ${cfg.settings.incomplete-dir}/**,
+        ''}
+        ${optionalString cfg.settings.watch-dir-enabled ''
+          r${optionalString cfg.settings.trash-original-torrent-files "w"} ${cfg.settings.watch-dir}/**,
+        ''}
+      }
+
+      ${optionalString (cfg.settings.script-torrent-done-enabled &&
+                        cfg.settings.script-torrent-done-filename != null) ''
+        # Stack transmission_directories profile on top of
+        # any existing profile for script-torrent-done-filename
+        # FIXME: to be tested as I'm not sure it works well with NoNewPrivileges=
+        # https://gitlab.com/apparmor/apparmor/-/wikis/AppArmorStacking#seccomp-and-no_new_privs
+        px ${cfg.settings.script-torrent-done-filename} -> &@{dirs},
+      ''}
+    '';
+
+```
