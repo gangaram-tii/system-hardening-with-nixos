@@ -262,5 +262,12 @@ boot.kernelPatches = [
       '';
     }
   ];
-
 ```
+
+
+## 6. Harden Linux OS
+Linux is a secure operating system that comes equipped with various built-in security subsystems by default to ensure the safety of your device. Two notable subsystems, namely SELinux (Security Enhanced Linux) and AppArmor, have been developed as Linux security module to offer enhanced security features.
+
+NixOS employs a unique approach to package management and system configuration using the Nix language. Its focus is on immutability and reproducibility. 
+
+SELinux assigns a security label to every file and process on the system. It stores security labels as extended attributes (xattrs) within the filesystem itself. Modifying files in the Nix store after they have been built to assign security labels etc. violates immutability. Supporting SELinux would require significant changes to the core principles of how NixOS manages its configurations and packages. However on the otherhand AppArmor is more compatible with Nix because it doesn't require attaching metadata to files.
