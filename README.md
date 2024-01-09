@@ -389,7 +389,16 @@ programs.firejail = {
 ```
 
 ## 9. Detect Viruses:
+Antivirus software plays a crucial role in computer security by serving as a proactive defense against malicious software, commonly known as malware.
+NixOS has inbuilt support for opensource ClamAV antivirus. ClamAV is an open source (GPLv2) anti-virus toolkit developed by Cisco, designed especially for e-mail scanning on mail gateways. It provides a number of utilities including a flexible and scalable multi-threaded daemon, a command line scanner and advanced tool for automatic database updates. The core of the package is an anti-virus engine available in a form of shared library. It can be enabled using below given config options
 
+```
+services.clamav.daemon.enable = true;
+services.clamav.updater.enable = true;  # Enable ClamAV freshclam updater.
+```
+It can be configuraed using options given in the link.
+
+[ClamAV configs](https://mynixos.com/search?q=clamav)
 
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
