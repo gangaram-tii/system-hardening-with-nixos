@@ -388,6 +388,9 @@ programs.firejail = {
 };
 ```
 
+## 9. Detect Viruses:
+
+
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
