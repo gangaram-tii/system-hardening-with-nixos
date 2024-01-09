@@ -340,7 +340,10 @@ A sandbox enables you to execute a program within an isolated environment, with 
 [Firejail](https://wiki.archlinux.org/title/firejail) is a SUID sandbox program that reduces the risk of security breaches by restricting the running environment of untrusted applications using Linux namespaces, seccomp-bpf and Linux capabilities. It allows a process and all its descendants to have their own private view of the globally shared kernel resources, such as the network stack, process table, mount table. Firejail can work in AppArmor environment too, and it is integrated with Linux Control Groups.
 
 Use following options to enable Firejail globally 
+
+```Nix
 programs.firejail.enable = true;
+```
 
 **Usage:**
 
