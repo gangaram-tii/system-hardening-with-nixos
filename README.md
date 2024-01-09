@@ -271,8 +271,7 @@ NixOS offers a fortified Linux kernel based on recommendations from the communit
 boot.kernelPackages = mkDefault pkgs.linuxPackages_hardened;
 ```
 One can craft a customized hardened kernel tailored to specific requirements. 
-
-
+[Hardened Kernel Config Recommendation](http://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings)
 
 ## 7. Enhance Security with AppArmor
 Linux is a secure operating system that comes equipped with various built-in security subsystems by default to ensure the safety of your device. Two notable subsystems, namely SELinux (Security Enhanced Linux) and AppArmor, have been developed as Linux security module to offer enhanced security features.
@@ -295,10 +294,12 @@ More configuration options are available in AppArmor. For NixOS Firewall options
 [Click here for more AppArmor config options in NixOS](https://mynixos.com/nixpkgs/options/security.apparmor)
 
 AppArmor:
+
 [AppArmor Documentation](https://gitlab.com/apparmor/apparmor/-/wikis/Documentation)
 
 Example setting:
 ```Nix
+    security.apparmor.enable = true;
     security.apparmor.policies."bin.transmission-daemon".profile = ''
       include "${cfg.package.apparmor}/bin.transmission-daemon"
     '';
@@ -337,6 +338,7 @@ Example setting:
 
 ---------------------------------
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
+https://madaidans-insecurities.github.io/guides/linux-hardening.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
 vulnix
 firejail
