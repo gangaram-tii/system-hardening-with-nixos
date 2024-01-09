@@ -4,15 +4,15 @@
 
 In today's digital age, protecting our computers and the information they hold is more important than ever. The motivations behind cyber attacks are as diverse as the individuals and groups who perpetrate them. Here are some of the most common reasons:
 
-**Data breaches:** Hackers can steal sensitive information like passwords, financial data, or personal records, which can have devastating consequences.
+ - **Data breaches:** Hackers can steal sensitive information like passwords, financial data, or personal records, which can have devastating consequences.
 
-**Identity theft:** Criminals can use stolen information to impersonate you, open fraudulent accounts, and ruin your credit.
+ - **Identity theft:** Criminals can use stolen information to impersonate you, open fraudulent accounts, and ruin your credit.
 
-**Ransomware attacks:** Malicious actors can encrypt your data and demand payment to unlock it, leaving you powerless without proper backups.
+ - **Ransomware attacks:** Malicious actors can encrypt your data and demand payment to unlock it, leaving you powerless without proper backups.
 
-**System disruptions:** Viruses and malware can damage your computer, crash systems, and disrupt critical operations.
+ - **System disruptions:** Viruses and malware can damage your computer, crash systems, and disrupt critical operations.
 
-**Financial losses:** Data breaches, downtime, and cybercrime can cost businesses millions of dollars annually.
+ - **Financial losses:** Data breaches, downtime, and cybercrime can cost businesses millions of dollars annually.
 
 Cybersecurity experts develop defense mechanisms to counter known attacks, yet attackers continually devise new types of assaults. Therefore, computer security is not a one-time solution but an ongoing process.
 
@@ -271,14 +271,17 @@ NixOS offers a fortified Linux kernel based on recommendations from the communit
 boot.kernelPackages = mkDefault pkgs.linuxPackages_hardened;
 ```
 One can craft a customized hardened kernel tailored to specific requirements. 
+
 [Hardened Kernel Config Recommendation](http://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings)
+
+[NixOS Hardened Kernel Config](https://github.com/NixOS/nixpkgs/blob/nixos-23.11/pkgs/os-specific/linux/kernel/hardened/config.nix)
 
 ## 7. Enhance Security with AppArmor
 Linux is a secure operating system that comes equipped with various built-in security subsystems by default to ensure the safety of your device. Two notable subsystems, namely SELinux (Security Enhanced Linux) and AppArmor, have been developed as Linux security module to offer enhanced security features.
 
 NixOS employs a unique approach to package management and system configuration using the Nix language. Its focus is on immutability and reproducibility. 
 
-SELinux assigns a security label to every file and process on the system. It stores security labels as extended attributes (xattrs) within the filesystem itself. Modifying files in the Nix store after they have been built to assign security labels etc. violates immutability. Supporting SELinux would require significant changes to the core principles of how NixOS manages its configurations and packages. However on the otherhand AppArmor is more compatible with Nix because it doesn't require attaching metadata to files. AppArmor security can be enabled in NixOS using following configuration options.
+SELinux assigns a security label to every file and process on the system. It stores security labels as extended attributes (xattrs) within the filesystem itself. Modifying files in the Nix store after they have been built to assign security labels etc. violates immutability. Supporting SELinux would require significant changes to the core principles of how NixOS manages its configurations and packages. However on the otherhand [AppArmor](https://gitlab.com/apparmor/apparmor/-/wikis/Documentation) is more compatible with Nix because it doesn't require attaching metadata to files. [AppArmor](https://gitlab.com/apparmor/apparmor/-/wikis/Documentation) security can be enabled in NixOS using following configuration options.
 
 ```Nix
 security.apparmor.enable = true;
@@ -291,13 +294,10 @@ security.apparmor.includes."local/bin.transmission-daemon" = ''
 ```
 More configuration options are available in AppArmor. For NixOS Firewall options, refer to the link provided below:
 
-[Click here for more AppArmor config options in NixOS](https://mynixos.com/nixpkgs/options/security.apparmor)
-
-AppArmor:
-
-[AppArmor Documentation](https://gitlab.com/apparmor/apparmor/-/wikis/Documentation)
+[AppArmor config options](https://mynixos.com/nixpkgs/options/security.apparmor)
 
 Example setting:
+
 ```Nix
     security.apparmor.enable = true;
     security.apparmor.policies."bin.transmission-daemon".profile = ''
@@ -335,11 +335,59 @@ Example setting:
     '';
 ```
 
+## 8. Sandbox Application:
+A sandbox enables you to execute a program within an isolated environment, with either restricted or no access to the rest of your system. This can be employed to enhance the security of applications or execute untrusted programs.
+[Firejail](https://wiki.archlinux.org/title/firejail) is a SUID sandbox program that reduces the risk of security breaches by restricting the running environment of untrusted applications using Linux namespaces, seccomp-bpf and Linux capabilities. It allows a process and all its descendants to have their own private view of the globally shared kernel resources, such as the network stack, process table, mount table. Firejail can work in AppArmor environment too, and it is integrated with Linux Control Groups.
 
----------------------------------
+Use following options to enable Firejail globally 
+programs.firejail.enable = true;
+
+**Usage:**
+
+To start an application in a sandboxed enviroment use Firejail like this
+
+```
+firejail bash
+```
+
+For a graphical application like Firefox web browser, it is recommended to also use a profile
+
+```
+firejail --profile=$(nix --extra-experimental-features nix-command --extra-experimental-features flakes eval -f '<nixpkgs>' --raw 'firejail')/etc/firejail/firefox.profile firefox
+```
+
+**Configuration:**
+
+You can also use the Firejail NixOS module for a persistent usage of specific applications which should always run in Firejail. The following example wraps the browser Librewolf and the messenger Signal in a Firejail environment. The usual program path to librewolf and signal-desktop will be overwritten by the Firejail-wrapper.
+
+```Nix
+programs.firejail = {
+  enable = true;
+  wrappedBinaries = {
+    librewolf = {
+      executable = "${pkgs.librewolf}/bin/librewolf";
+      profile = "${pkgs.firejail}/etc/firejail/librewolf.profile";
+      extraArgs = [
+        # Required for U2F USB stick
+        "--ignore=private-dev"
+        # Enforce dark mode
+        "--env=GTK_THEME=Adwaita:dark"
+        # Enable system notifications
+        "--dbus-user.talk=org.freedesktop.Notifications"
+      ];
+    };
+    signal-desktop = {
+      executable = "${pkgs.signal-desktop}/bin/signal-desktop --enable-features=UseOzonePlatform --ozone-platform=wayland";
+      profile = "${pkgs.firejail}/etc/firejail/signal-desktop.profile";
+      extraArgs = [ "--env=GTK_THEME=Adwaita:dark" ];
+    };
+  };
+};
+```
+
+### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
-https://madaidans-insecurities.github.io/guides/linux-hardening.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
 vulnix
 firejail
---------------------------------
+
