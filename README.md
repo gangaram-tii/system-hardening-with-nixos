@@ -264,13 +264,17 @@ boot.kernelPatches = [
   ];
 ```
 
+## 6. Use Hardened Linux Kernel
+NixOS offers a fortified Linux kernel based on recommendations from the community. It can be utilized through the following options:
 
----------------------------------
-https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
-vulnix
---------------------------------
+```Nix
+boot.kernelPackages = mkDefault pkgs.linuxPackages_hardened;
+```
+One can craft a customized hardened kernel tailored to specific requirements. 
 
-## 6. Harden Linux OS
+
+
+## 7. Enhance Security with AppArmor
 Linux is a secure operating system that comes equipped with various built-in security subsystems by default to ensure the safety of your device. Two notable subsystems, namely SELinux (Security Enhanced Linux) and AppArmor, have been developed as Linux security module to offer enhanced security features.
 
 NixOS employs a unique approach to package management and system configuration using the Nix language. Its focus is on immutability and reproducibility. 
@@ -279,9 +283,21 @@ SELinux assigns a security label to every file and process on the system. It sto
 
 ```Nix
 security.apparmor.enable = true;
+security.apparmor.policies."application".profile = ''
+      include "${profile-path-here}"
+    '';
+security.apparmor.includes."local/bin.transmission-daemon" = ''
+      # Rules
+    '';
 ```
+More configuration options are available in AppArmor. For NixOS Firewall options, refer to the link provided below:
 
+[Click here for more AppArmor config options in NixOS](https://mynixos.com/nixpkgs/options/security.apparmor)
 
+AppArmor:
+[AppArmor Documentation](https://gitlab.com/apparmor/apparmor/-/wikis/Documentation)
+
+Example setting:
 ```Nix
     security.apparmor.policies."bin.transmission-daemon".profile = ''
       include "${cfg.package.apparmor}/bin.transmission-daemon"
@@ -316,5 +332,12 @@ security.apparmor.enable = true;
         px ${cfg.settings.script-torrent-done-filename} -> &@{dirs},
       ''}
     '';
-
 ```
+
+
+---------------------------------
+https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
+https://madaidans-insecurities.github.io/guides/linux-hardening.html
+vulnix
+firejail
+--------------------------------
