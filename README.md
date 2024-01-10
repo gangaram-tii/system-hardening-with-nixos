@@ -403,6 +403,10 @@ It can be configuraed using options given in the link.
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
-vulnix
-firejail
+https://sourcegraph.com/github.com/kamadorueda/nixel@a4d7ccfd2a5ce28b6ffdc2ed0dd3f6c339b2357f/-/blob/tests/inputs/nixpkgs/nixos/modules/profiles/hardened.nix
+https://sourcegraph.com/github.com/lukebfox/nix-configs@6e02889cd5c8b8c9054a82650c96a0ffc5076126/-/blob/profiles/nixos/hardened/default.nix
 
+  security.apparmor.enable = true;
+  security.polkit.enable = true;
+  security.sudo.enable = false;
+  security.pam.services.seraphybr.enableGnomeKeyring = true;
