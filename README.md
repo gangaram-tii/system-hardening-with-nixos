@@ -400,6 +400,12 @@ It can be configuraed using options given in the link.
 
 [ClamAV configs](https://mynixos.com/search?q=clamav)
 
+## 10. Configure for Security:
+There are many configuration options are available, which can be used to enhance security. One can use following options to enhance security:
+
+### 10.1 Sysctl
+Sysctl can be used to adjust kernel settings to to make it harder for attacks and improve security.. 
+
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
