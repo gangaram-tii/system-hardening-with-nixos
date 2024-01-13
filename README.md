@@ -404,7 +404,48 @@ It can be configuraed using options given in the link.
 There are many configuration options are available, which can be used to enhance security. One can use following options to enhance security:
 
 ### 10.1 Sysctl
-Sysctl can be used to adjust kernel settings to to make it harder for attacks and improve security.. 
+Sysctl can be used to adjust kernel settings to make it harder for attacks and improve security. Following settings are recommneded to enhance security:
+
+#### 10.1.1 Restrict ptrace
+One process can inspect and manipulate internal state of another process using ptrace system call. ptrace is used by debugger, strace, and other code coverage analysis tools. Attackers can exploit this to change status of other running processes. Following configuration restricts usage of ptrace to only processes with the CAP_SYS_PTRACE capability. Alternatively, set this to 3 to disable ptrace entirely.
+```Nix  
+  boot.kernel.sysctl."kernel.yama.ptrace_scope" = mkOverride 500 2;
+```
+
+#### 10.1.2 Hide Kernel Pointers
+Kernel pointer are not hidded by default, it can be uncovered by reading contents of `/proc/kallsyms`. Kernel pointers are very usefull to exploit kernel. This setting completely hides pointers(sets to 0) regardless of the previledge of the accessing process. Alternatively, you can set `kernel.kptr_restrict=1` to only hide kernel pointers from processes without the CAP_SYSLOG capability. 
+```Nix
+  boot.kernel.sysctl."kernel.kptr_restrict" = mkOverride 500 2;
+```
+  # Disable bpf() JIT (to eliminate spray attacks)
+  boot.kernel.sysctl."net.core.bpf_jit_enable" = mkDefault false;
+
+  # Disable ftrace debugging
+  boot.kernel.sysctl."kernel.ftrace_enabled" = mkDefault false;
+
+  # Enable strict reverse path filtering (that is, do not attempt to route
+  # packets that "obviously" do not belong to the iface's network; dropped
+  # packets are logged as martians).
+  boot.kernel.sysctl."net.ipv4.conf.all.log_martians" = mkDefault true;
+  boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkDefault "1";
+  boot.kernel.sysctl."net.ipv4.conf.default.log_martians" = mkDefault true;
+  boot.kernel.sysctl."net.ipv4.conf.default.rp_filter" = mkDefault "1";
+
+  # Ignore broadcast ICMP (mitigate SMURF)
+  boot.kernel.sysctl."net.ipv4.icmp_echo_ignore_broadcasts" = mkDefault true;
+
+  # Ignore incoming ICMP redirects (note: default is needed to ensure that the
+  # setting is applied to interfaces added after the sysctls are set)
+  boot.kernel.sysctl."net.ipv4.conf.all.accept_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv4.conf.all.secure_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv4.conf.default.accept_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv4.conf.default.secure_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv6.conf.all.accept_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv6.conf.default.accept_redirects" = mkDefault false;
+
+  # Ignore outgoing ICMP redirects (this is ipv4 only)
+  boot.kernel.sysctl."net.ipv4.conf.all.send_redirects" = mkDefault false;
+  boot.kernel.sysctl."net.ipv4.conf.default.send_redirects" = mkDefault false;
 
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
