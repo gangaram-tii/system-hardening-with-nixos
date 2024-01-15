@@ -414,12 +414,16 @@ One process can inspect and manipulate internal state of another process using p
 
 #### 10.1.2 Hide Kernel Pointers
 Kernel pointer are not hidded by default, it can be uncovered by reading contents of `/proc/kallsyms`. Kernel pointers are very usefull to exploit kernel. This setting completely hides pointers(sets to 0) regardless of the previledge of the accessing process. Alternatively, you can set `kernel.kptr_restrict=1` to only hide kernel pointers from processes without the CAP_SYSLOG capability. 
+
 ```Nix
   boot.kernel.sysctl."kernel.kptr_restrict" = mkOverride 500 2;
 ```
-  # Disable bpf() JIT (to eliminate spray attacks)
-  boot.kernel.sysctl."net.core.bpf_jit_enable" = mkDefault false;
+#### 10.1.3 Disable bpf JIT compiler
+JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)used to load an attacker-provided payload into an executable memory area of the operating system [3]. This is usually achieved by passing the payload instructions encoded as constants to the JIT compiler and then using a suitable OS bug to redirect execution into the payload code
 
+```Nix
+  boot.kernel.sysctl."net.core.bpf_jit_enable" = mkDefault false;
+```
   # Disable ftrace debugging
   boot.kernel.sysctl."kernel.ftrace_enabled" = mkDefault false;
 
