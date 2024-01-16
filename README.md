@@ -335,6 +335,9 @@ Example setting:
     '';
 ```
 
+[Profiles](https://gitlab.com/morfikov/apparmemall)
+
+
 ## 8. Sandbox Application:
 A sandbox enables you to execute a program within an isolated environment, with either restricted or no access to the rest of your system. This can be employed to enhance the security of applications or execute untrusted programs.
 [Firejail](https://wiki.archlinux.org/title/firejail) is a SUID sandbox program that reduces the risk of security breaches by restricting the running environment of untrusted applications using Linux namespaces, seccomp-bpf and Linux capabilities. It allows a process and all its descendants to have their own private view of the globally shared kernel resources, such as the network stack, process table, mount table. Firejail can work in AppArmor environment too, and it is integrated with Linux Control Groups.
