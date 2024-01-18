@@ -428,6 +428,13 @@ JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)u
 ```Nix
   boot.kernel.sysctl."net.core.bpf_jit_enable" = mkDefault false;
 ```
+eBPF exposes large attack surface. If eBPF JIT is need of the system then it must be restricted using following options.
+
+```Nix
+  boot.kernel.sysctl."kernel.unprivileged_bpf_disabled" = mkOverride 500 1;
+  boot.kernel.sysctl."net.core.bpf_jit_harden" = mkOverride 500 2;
+```
+
 ##### 10.1.1.4 Disable ftrace debugging
 Ftrace is an internal tracer designed to help out developers and designers of systems to find what is going on inside the kernel. It can be used for debugging or analyzing latencies and performance issues. Attackers can use these traces to gather sensitive information about the system to plan an attack.
 ```Nix
@@ -467,6 +474,7 @@ Log Level | kernel flag  | Description
   boot.kernel.sysctl."kernel.dmesg_restrict" = mkOverride 500 1;
   boot.consoleLogLevel = mkOverride 500 3;
 ```
+
 
 
 
