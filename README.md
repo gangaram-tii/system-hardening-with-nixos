@@ -409,29 +409,45 @@ There are many configuration options are available, which can be used to enhance
 ### 10.1 Sysctl
 Sysctl can be used to adjust kernel settings to make it harder for attacks and improve security. Following settings are recommneded to enhance security:
 
-#### 10.1.1 Restrict ptrace
+#### 10.1.1 System Security
+##### 10.1.1.1 Restrict ptrace
 One process can inspect and manipulate internal state of another process using ptrace system call. ptrace is used by debugger, strace, and other code coverage analysis tools. Attackers can exploit this to change status of other running processes. Following configuration restricts usage of ptrace to only processes with the CAP_SYS_PTRACE capability. Alternatively, set this to 3 to disable ptrace entirely.
 ```Nix  
   boot.kernel.sysctl."kernel.yama.ptrace_scope" = mkOverride 500 2;
 ```
 
-#### 10.1.2 Hide Kernel Pointers
+##### 10.1.1.2 Hide Kernel Pointers
 Kernel pointer are not hidded by default, it can be uncovered by reading contents of `/proc/kallsyms`. Kernel pointers are very usefull to exploit kernel. This setting completely hides pointers(sets to 0) regardless of the previledge of the accessing process. Alternatively, you can set `kernel.kptr_restrict=1` to only hide kernel pointers from processes without the CAP_SYSLOG capability. 
 
 ```Nix
   boot.kernel.sysctl."kernel.kptr_restrict" = mkOverride 500 2;
 ```
-#### 10.1.3 Disable bpf JIT compiler
+##### 10.1.1.3 Disable bpf JIT compiler
 JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)used to load an attacker-provided payload into an executable memory area of the operating system [3]. This is usually achieved by passing the payload instructions encoded as constants to the JIT compiler and then using a suitable OS bug to redirect execution into the payload code
 
 ```Nix
   boot.kernel.sysctl."net.core.bpf_jit_enable" = mkDefault false;
 ```
-#### 10.1.4 Disable ftrace debugging
+##### 10.1.1.4 Disable ftrace debugging
 Ftrace is an internal tracer designed to help out developers and designers of systems to find what is going on inside the kernel. It can be used for debugging or analyzing latencies and performance issues. Attackers can use these traces to gather sensitive information about the system to plan an attack.
 ```Nix
   boot.kernel.sysctl."kernel.ftrace_enabled" = mkDefault false;
 ```
+
+##### 10.1.1.5 Enable kernel address space randomization
+Address space randomization increases the difficulty of performing a buffer overflow attack that requires the attacker to know the location of an executable in memory.
+
+```Nix
+  boot.kernel.sysctl."kernel.randomize_va_space" = mkOverride 500 2;
+```
+##### 10.1.1.5 Restrict core dump
+When a program experiences a core dump, it creates a file containing a snapshot of its memory at the time of the crash. This file, known as a core dump file, aids developers in diagnosing and fixing the underlying issues leading to the program's failure.
+However, it's crucial to recognize that in certain scenarios, core dump files can pose a security risk. Attackers may leverage these files to gain insights into the program's memory layout, potentially revealing vulnerabilities that could be exploited for unauthorized access or other malicious purposes. Therefore, managing and securing core dump files is an essential aspect of overall system security. 
+
+```Nix
+  boot.kernel.sysctl."fs.suid_dumpable" = mkOverride 500 0;
+```
+ 
 
   # Enable strict reverse path filtering (that is, do not attempt to route
   # packets that "obviously" do not belong to the iface's network; dropped
