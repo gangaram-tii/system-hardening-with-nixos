@@ -440,14 +440,35 @@ Address space randomization increases the difficulty of performing a buffer over
 ```Nix
   boot.kernel.sysctl."kernel.randomize_va_space" = mkOverride 500 2;
 ```
-##### 10.1.1.5 Restrict core dump
+##### 10.1.1.6 Restrict core dump
 When a program experiences a core dump, it creates a file containing a snapshot of its memory at the time of the crash. This file, known as a core dump file, aids developers in diagnosing and fixing the underlying issues leading to the program's failure.
 However, it's crucial to recognize that in certain scenarios, core dump files can pose a security risk. Attackers may leverage these files to gain insights into the program's memory layout, potentially revealing vulnerabilities that could be exploited for unauthorized access or other malicious purposes. Therefore, managing and securing core dump files is an essential aspect of overall system security. 
 
 ```Nix
   boot.kernel.sysctl."fs.suid_dumpable" = mkOverride 500 0;
 ```
- 
+
+##### 10.1.1.7 Restrict kernel log
+The kernel log contains valuable information about the kernel, offering insights that attackers could leverage to strategize for an attack. It is advisable to limit the kernel log's accessibility to prevent the disclosure of critical kernel details, thereby enhancing the overall security.
+Despite the dmesg restriction, the kernel log will still be displayed in the console during boot. This information can also be usefull for attacker. It is better to expose minimum information during boot. One can set kernel log level between 0 to 3 to display minimum required information in kernel log. It is recommended to set low console log level in boot params. Linux kernel defines following log levels:
+
+Log Level | kernel flag  | Description 
+----------|--------------|------------
+0 	       | KERN_EMERG 	 | An emergency condition; the system is probably dead
+1 	       | KERN_ALERT 	 | A problem that requires immediate attention
+2 	       | KERN_CRIT 	  | A critical condition
+3 	       | KERN_ERR 	   | An error
+4 	       | KERN_WARNING | A warning
+5 	       | KERN_NOTICE 	| A normal, but perhaps noteworthy, condition
+6 	       | KERN_INFO 	  | An informational message
+7 	       | KERN_DEBUG 	 | A debug message, typically superfluous 
+
+```Nix
+  boot.kernel.sysctl."kernel.dmesg_restrict" = mkOverride 500 1;
+  boot.consoleLogLevel = mkOverride 500 3;
+```
+
+
 
   # Enable strict reverse path filtering (that is, do not attempt to route
   # packets that "obviously" do not belong to the iface's network; dropped
