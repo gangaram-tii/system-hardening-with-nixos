@@ -413,14 +413,14 @@ Sysctl can be used to adjust kernel settings to make it harder for attacks and i
 ##### 10.1.1.1 Restrict ptrace
 One process can inspect and manipulate internal state of another process using ptrace system call. ptrace is used by debugger, strace, and other code coverage analysis tools. Attackers can exploit this to change status of other running processes. Following configuration restricts usage of ptrace to only processes with the CAP_SYS_PTRACE capability. Alternatively, set this to 3 to disable ptrace entirely.
 ```Nix  
-  boot.kernel.sysctl."kernel.yama.ptrace_scope" = mkOverride 500 2;
+  boot.kernel.sysctl."kernel.yama.ptrace_scope" = mkForce 2;
 ```
 
 ##### 10.1.1.2 Hide Kernel Pointers
 Kernel pointer are not hidded by default, it can be uncovered by reading contents of `/proc/kallsyms`. Kernel pointers are very usefull to exploit kernel. This setting completely hides pointers(sets to 0) regardless of the previledge of the accessing process. Alternatively, you can set `kernel.kptr_restrict=1` to only hide kernel pointers from processes without the CAP_SYSLOG capability. 
 
 ```Nix
-  boot.kernel.sysctl."kernel.kptr_restrict" = mkOverride 500 2;
+  boot.kernel.sysctl."kernel.kptr_restrict" = mkForce 2;
 ```
 ##### 10.1.1.3 Disable bpf JIT compiler
 JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)used to load an attacker-provided payload into an executable memory area of the operating system [3]. This is usually achieved by passing the payload instructions encoded as constants to the JIT compiler and then using a suitable OS bug to redirect execution into the payload code
@@ -432,7 +432,7 @@ eBPF exposes large attack surface. If eBPF JIT is need of the system then it mus
 
 ```Nix
   boot.kernel.sysctl."kernel.unprivileged_bpf_disabled" = mkOverride 500 1;
-  boot.kernel.sysctl."net.core.bpf_jit_harden" = mkOverride 500 2;
+  boot.kernel.sysctl."net.core.bpf_jit_harden" = mkForce 2;
 ```
 
 ##### 10.1.1.4 Disable ftrace debugging
@@ -445,7 +445,7 @@ Ftrace is an internal tracer designed to help out developers and designers of sy
 Address space randomization increases the difficulty of performing a buffer overflow attack that requires the attacker to know the location of an executable in memory.
 
 ```Nix
-  boot.kernel.sysctl."kernel.randomize_va_space" = mkOverride 500 2;
+  boot.kernel.sysctl."kernel.randomize_va_space" = mkForce 2;
 ```
 ##### 10.1.1.6 Restrict core dump
 When a program experiences a core dump, it creates a file containing a snapshot of its memory at the time of the crash. This file, known as a core dump file, aids developers in diagnosing and fixing the underlying issues leading to the program's failure.
@@ -460,7 +460,7 @@ The kernel log contains valuable information about the kernel, offering insights
 Despite the dmesg restriction, the kernel log will still be displayed in the console during boot. This information can also be usefull for attacker. It is better to expose minimum information during boot. One can set kernel log level between 0 to 3 to display minimum required information in kernel log. It is recommended to set low console log level in boot params. 
 
 ```Nix
-  boot.kernel.sysctl."kernel.dmesg_restrict" = mkOverride 500 1;
+  boot.kernel.sysctl."kernel.dmesg_restrict" = mkForce 1;
   boot.consoleLogLevel = mkOverride 500 3;
 ```
 
@@ -477,6 +477,12 @@ Log Level | kernel flag  | Description
 6 	       | KERN_INFO 	  | An informational message
 7 	       | KERN_DEBUG 	 | A debug message, typically superfluous 
 
+##### 10.1.1.8 Restrict userfaultfd() system call
+userfaultfd() system call is a Linux kernel feature that provides a mechanism for handling user-space page faults. It allows applications to be notified when a page fault occurs and gives them the opportunity to handle the fault in user space rather than relying on the kernel to handle it. userfaultfd() system call can be combined with use-after-free vulnerabilities to perform an attack. It is recommended to restrict usage of this system call. 
+
+```Nix
+  boot.kernel.sysctl."vm.unprivileged_userfaultfd" = mkForce 0;
+```
 
 
   # Enable strict reverse path filtering (that is, do not attempt to route
