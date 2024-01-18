@@ -457,7 +457,14 @@ However, it's crucial to recognize that in certain scenarios, core dump files ca
 
 ##### 10.1.1.7 Restrict kernel log
 The kernel log contains valuable information about the kernel, offering insights that attackers could leverage to strategize for an attack. It is advisable to limit the kernel log's accessibility to prevent the disclosure of critical kernel details, thereby enhancing the overall security.
-Despite the dmesg restriction, the kernel log will still be displayed in the console during boot. This information can also be usefull for attacker. It is better to expose minimum information during boot. One can set kernel log level between 0 to 3 to display minimum required information in kernel log. It is recommended to set low console log level in boot params. Linux kernel defines following log levels:
+Despite the dmesg restriction, the kernel log will still be displayed in the console during boot. This information can also be usefull for attacker. It is better to expose minimum information during boot. One can set kernel log level between 0 to 3 to display minimum required information in kernel log. It is recommended to set low console log level in boot params. 
+
+```Nix
+  boot.kernel.sysctl."kernel.dmesg_restrict" = mkOverride 500 1;
+  boot.consoleLogLevel = mkOverride 500 3;
+```
+
+Linux kernel defines following log levels:
 
 Log Level | kernel flag  | Description 
 ----------|--------------|------------
@@ -469,12 +476,6 @@ Log Level | kernel flag  | Description
 5 	       | KERN_NOTICE 	| A normal, but perhaps noteworthy, condition
 6 	       | KERN_INFO 	  | An informational message
 7 	       | KERN_DEBUG 	 | A debug message, typically superfluous 
-
-```Nix
-  boot.kernel.sysctl."kernel.dmesg_restrict" = mkOverride 500 1;
-  boot.consoleLogLevel = mkOverride 500 3;
-```
-
 
 
 
