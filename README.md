@@ -532,7 +532,7 @@ If you're not using IPv6 or the [dual stack](## "Coexistence of both IPv4 and IP
 ```
 
 ##### 10.1.2.2 Prevent SYN Flooding
-When a device initiates a TCP connection, it sends a [SYN]("Synchronize") packet to the server. The server, in response, sends a [SYN-ACK]("synchronize-acknowledge") packet and awaits an [ACK]("acknowledge") packet from the client to complete the connection. In a SYN flood attack, an attacker sends a large number of SYN packets without intending to complete the connections. This can overwhelm the server's resources and lead to a [DoS]("denial of service") attack.
+When a device initiates a TCP connection, it sends a [SYN](## "Synchronize") packet to the server. The server, in response, sends a [SYN-ACK](## "synchronize-acknowledge") packet and awaits an [ACK](## "acknowledge") packet from the client to complete the connection. In a SYN flood attack, an attacker sends a large number of SYN packets without intending to complete the connections. This can overwhelm the server's resources and lead to a [DoS](## "Denial of Service") attack.
 SYN cookies designed to help protect against such DoS attacks. Follwing settings are recommended to enable SYN cookies:
 
 ```Nix
@@ -544,35 +544,59 @@ SYN cookies designed to help protect against such DoS attacks. Follwing settings
 
 ##### 10.1.2.3 Enable protection against time-wait assasination
 In networking, when a TCP connection is closed, it enters the TIME-WAIT state for a certain period. This period is designed to ensure that any delayed or out-of-order packets related to the closed connection are handled properly. RFC 1337 identifies potential security risks during this TIME-WAIT period, specifically related to the reuse of the same tuple of IP addresses and port numbers.
-Based on the recommendations outlined in RFC 1337, enable follwing setting to protect against time-wait assassination by dropping [RST packets]("The Reset packet is employed to terminate an established TCP connection abruptly or to indicate an error condition.") for sockets in the time-wait state.
+Based on the recommendations outlined in RFC 1337, enable follwing setting to protect against time-wait assassination by dropping [RST packets](## "The Reset packet is employed to terminate an established TCP connection abruptly or to indicate an error condition.") for sockets in the time-wait state.
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.tcp_rfc1337" = mkForce 1;
 ```
+##### 10.1.2.4 Protection against IP Spoofing
+IP spoofing is a technique where an attacker sends IP packets from a false (or "spoofed") source address in order to deceive the recipient about the origin of the message. This technique is used to perform DoS or Man in the Middle attack. To prevent such attack, source validation is must for the packets received from all the interfaces. [Reverse Path Filtering](## "RP-Filter") helps prevent IP spoofing by checking the source address of incoming packets against the routing table to verify that the packet came from a legitimate source. Here is the setting you can use to enable RP filter.
 
-  # Enable strict reverse path filtering (that is, do not attempt to route
-  packets that "obviously" do not belong to the iface's network; dropped
-  packets are logged as martians).
+```Nix
+  boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkForce 1;
+  boot.kernel.sysctl."net.ipv4.conf.default.rp_filter" = mkForce 1;
+```
+##### 10.1.2.5 Disable Redirect Acceptance
+[ICMP](## "Internet Control Message Protocol") redirect messages are typically sent by routers to inform hosts that there is a more optimal route for a particular destination. When a host receives an ICMP Redirect message, it can update its routing table to use the suggested route. 
+It's worth noting that while ICMP redirect messages can be useful for optimizing routing in some scenarios, they can also be misused to perform Man in the middle attack. These configurations disable ICMP redirect acceptance and sending:
+
+```Nix
+  boot.kernel.sysctl."net.ipv4.conf.all.accept_redirects" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.default.accept_redirects" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.all.secure_redirects" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.default.secure_redirects" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.all.send_redirects" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.default.send_redirects" = mkForce 0;
+```
+
+##### 10.1.2.6 Ignore source-routed IP packets
+When source routing is enabled, the system accepts source-routed IP packets. In source routing, the sender of a packet can specify the route it should take through the network.
+Source routing can be misused for various attacks, including IP spoofing and other forms of packet manipulation. Disabling acceptance of source-routed packets is generally a good security practice.
+
+```Nix
+  boot.kernel.sysctl."net.ipv4.conf.all.accept_source_route" = mkForce 0;
+  boot.kernel.sysctl."net.ipv4.conf.default.accept_source_route" = mkForce 0;
+```
+
+##### 10.1.2.7 Ignore ICMP echo requests
+ICMP Echo Requests are commonly associated with the "ping" command, which is used to test the reachability of a host on an Internet Protocol (IP) network. This parameter is often used as a security measure to reduce the visibility of a system to potential attackers. 
+
+```Nix
+  boot.kernel.sysctl."net.ipv4.icmp_echo_ignore_all" = mkForce 1;
+```
+
+##### 10.1.2.8 Log Martian packets
+Martian packets are packets with source or destination addresses that are not routable or are reserved for special purposes. These packets are considered anomalous and may indicate a misconfiguration or potentially malicious activity. Kernel should log such packets to identify malicous activity.
+
+```Nix
   boot.kernel.sysctl."net.ipv4.conf.all.log_martians" = mkDefault true;
-  boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkDefault "1";
   boot.kernel.sysctl."net.ipv4.conf.default.log_martians" = mkDefault true;
-  boot.kernel.sysctl."net.ipv4.conf.default.rp_filter" = mkDefault "1";
+```
 
-  # Ignore broadcast ICMP (mitigate SMURF)
-  boot.kernel.sysctl."net.ipv4.icmp_echo_ignore_broadcasts" = mkDefault true;
 
-  # Ignore incoming ICMP redirects (note: default is needed to ensure that the
-  # setting is applied to interfaces added after the sysctls are set)
-  boot.kernel.sysctl."net.ipv4.conf.all.accept_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv4.conf.all.secure_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv4.conf.default.accept_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv4.conf.default.secure_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv6.conf.all.accept_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv6.conf.default.accept_redirects" = mkDefault false;
 
-  # Ignore outgoing ICMP redirects (this is ipv4 only)
-  boot.kernel.sysctl."net.ipv4.conf.all.send_redirects" = mkDefault false;
-  boot.kernel.sysctl."net.ipv4.conf.default.send_redirects" = mkDefault false;
+
+
 
 ### References:
 https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
