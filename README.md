@@ -403,26 +403,23 @@ It can be configuraed using options given in the link.
 
 [ClamAV configs](https://mynixos.com/search?q=clamav)
 
-## 10. Configure for Security:
-There are many configuration options are available, which can be used to enhance security. One can use following options to enhance security:
-
-### 10.1 Sysctl
+## 10. Sysctl Configuration for Security:
 Sysctl can be used to adjust kernel settings to make it harder for attacks and improve security. Following settings are recommneded to enhance security:
 
-#### 10.1.1 System Security
-##### 10.1.1.1 Restrict ptrace
+### 10.1 System Security
+#### 10.1.1 Restrict ptrace
 One process can inspect and manipulate internal state of another process using ptrace system call. ptrace is used by debugger, strace, and other code coverage analysis tools. Attackers can exploit this to change status of other running processes. Following configuration restricts usage of ptrace to only processes with the CAP_SYS_PTRACE capability. Alternatively, set this to 3 to disable ptrace entirely.
 ```Nix  
   boot.kernel.sysctl."kernel.yama.ptrace_scope" = mkForce 2;
 ```
 
-##### 10.1.1.2 Hide Kernel Pointers
+#### 10.1.2 Hide Kernel Pointers
 Kernel pointer are not hidded by default, it can be uncovered by reading contents of `/proc/kallsyms`. Kernel pointers are very usefull to exploit kernel. This setting completely hides pointers(sets to 0) regardless of the previledge of the accessing process. Alternatively, you can set `kernel.kptr_restrict=1` to only hide kernel pointers from processes without the CAP_SYSLOG capability. 
 
 ```Nix
   boot.kernel.sysctl."kernel.kptr_restrict" = mkForce 2;
 ```
-##### 10.1.1.3 Disable bpf JIT compiler
+#### 10.1.3 Disable bpf JIT compiler
 JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)used to load an attacker-provided payload into an executable memory area of the operating system [3]. This is usually achieved by passing the payload instructions encoded as constants to the JIT compiler and then using a suitable OS bug to redirect execution into the payload code
 
 ```Nix
@@ -435,19 +432,19 @@ eBPF exposes large attack surface. If eBPF JIT is need of the system then it mus
   boot.kernel.sysctl."net.core.bpf_jit_harden" = mkForce 2;
 ```
 
-##### 10.1.1.4 Disable ftrace debugging
+#### 10.1.4 Disable ftrace debugging
 Ftrace is an internal tracer designed to help out developers and designers of systems to find what is going on inside the kernel. It can be used for debugging or analyzing latencies and performance issues. Attackers can use these traces to gather sensitive information about the system to plan an attack.
 ```Nix
   boot.kernel.sysctl."kernel.ftrace_enabled" = mkDefault false;
 ```
 
-##### 10.1.1.5 Enable kernel address space randomization
+#### 10.1.5 Enable kernel address space randomization
 Address space randomization increases the difficulty of performing a buffer overflow attack that requires the attacker to know the location of an executable in memory.
 
 ```Nix
   boot.kernel.sysctl."kernel.randomize_va_space" = mkForce 2;
 ```
-##### 10.1.1.6 Restrict core dump
+#### 10.1.6 Restrict core dump
 When a program experiences a core dump, it creates a file containing a snapshot of its memory at the time of the crash. This file, known as a core dump file, aids developers in diagnosing and fixing the underlying issues leading to the program's failure.
 However, it's crucial to recognize that in certain scenarios, core dump files can pose a security risk. Attackers may leverage these files to gain insights into the program's memory layout, potentially revealing vulnerabilities that could be exploited for unauthorized access or other malicious purposes. Therefore, managing and securing core dump files is an essential aspect of overall system security. 
 
@@ -455,7 +452,7 @@ However, it's crucial to recognize that in certain scenarios, core dump files ca
   boot.kernel.sysctl."fs.suid_dumpable" = mkOverride 500 0;
 ```
 
-##### 10.1.1.7 Restrict kernel log
+#### 10.1.7 Restrict kernel log
 The kernel log contains valuable information about the kernel, offering insights that attackers could leverage to strategize for an attack. It is advisable to limit the kernel log's accessibility to prevent the disclosure of critical kernel details, thereby enhancing the overall security.
 Despite the dmesg restriction, the kernel log will still be displayed in the console during boot. This information can also be usefull for attacker. It is better to expose minimum information during boot. One can set kernel log level between 0 to 3 to display minimum required information in kernel log. It is recommended to set low console log level in boot params. 
 
@@ -477,21 +474,21 @@ Log Level | kernel flag  | Description
 6 	       | KERN_INFO 	  | An informational message
 7 	       | KERN_DEBUG 	 | A debug message, typically superfluous 
 
-##### 10.1.1.8 Restrict userfaultfd() system call
+#### 10.1.8 Restrict userfaultfd() system call
 userfaultfd() system call is a Linux kernel feature that provides a mechanism for handling user-space page faults. It allows applications to be notified when a page fault occurs and gives them the opportunity to handle the fault in user space rather than relying on the kernel to handle it. userfaultfd() system call can be combined with use-after-free vulnerabilities to perform an attack. It is recommended to restrict usage of this system call. 
 
 ```Nix
   boot.kernel.sysctl."vm.unprivileged_userfaultfd" = mkForce 0;
 ```
 
-##### 10.1.1.9 Disable kexec() system call
+#### 10.1.9 Disable kexec() system call
 The kexec system call is allows a user-space process to load and execute a new kernel from within an already running kernel, without the need to reboot the system. This can be useful for tasks such as kernel debugging, testing, or updating the kernel without a full system restart. This can be abused to load a malicious kernel. It is recommended to disable this system call.
 
 ```Nix
   boot.kernel.sysctl."kernel.kexec_load_disabled" = mkForce 1;
 ```
 
-##### 10.1.1.9 Restrict/Disable SysRq
+#### 10.1.9 Restrict/Disable SysRq
 The SysRq key on a computer keyboard has some powerful but risky debugging features that regular users can access. This is not just a concern for situations where someone has physical access to the computer; it can also be a problem if someone tries to use it remotely. By adjusting a setting called sysctl, you can limit a user's ability to use the SysRq key to only perform a secure action key, which is essential for securely accessing the root (administrator) account. Alternatively, you can set the sysctl value to 0 to completely turn off the SysRq key functionality.
 
 ```Nix
@@ -513,16 +510,16 @@ Value | Description
 128   | Allow reboot/poweroff
 256   | Allow nicing of all RT tasks
 
-##### 10.1.1.10 Disable user namespace cloning for unprivileged users
+#### 10.1.10 Disable user namespace cloning for unprivileged users
 User namespaces allow unprivileged users to create isolated environments with their own UID and GID mappings, namespaces, and capabilities. This is useful for creating containers and other forms of process isolation.
 This can make vulnerabilities in the Linux kernel much more easily exploitable. If you don't need, disable it.
 
 ```Nix
   boot.kernel.sysctl."kernel.unprivileged_userns_clone" = mkForce 0;
 ```
-#### 10.1.2 Network Security
+### 10.2 Network Security
 
-##### 10.1.2.1 Disable IPv6
+#### 10.2.1 Disable IPv6
 If you're not using IPv6 or the [dual stack](## "Coexistence of both IPv4 and IPv6 on the same network infrastructure."), it's a good idea to turn off IPv6. It will reduce the attack surface.
 
 ```Nix
@@ -531,7 +528,7 @@ If you're not using IPv6 or the [dual stack](## "Coexistence of both IPv4 and IP
   boot.kernel.sysctl."net.ipv6.conf.lo.disable_ipv6" = mkForce 1;
 ```
 
-##### 10.1.2.2 Prevent SYN Flooding
+#### 10.2.2 Prevent SYN Flooding
 When a device initiates a TCP connection, it sends a [SYN](## "Synchronize") packet to the server. The server, in response, sends a [SYN-ACK](## "synchronize-acknowledge") packet and awaits an [ACK](## "acknowledge") packet from the client to complete the connection. In a SYN flood attack, an attacker sends a large number of SYN packets without intending to complete the connections. This can overwhelm the server's resources and lead to a [DoS](## "Denial of Service") attack.
 SYN cookies designed to help protect against such DoS attacks. Follwing settings are recommended to enable SYN cookies:
 
@@ -542,21 +539,21 @@ SYN cookies designed to help protect against such DoS attacks. Follwing settings
   boot.kernel.sysctl."net.ipv4.tcp_max_syn_backlog" = mkForce 4096;
 ```
 
-##### 10.1.2.3 Enable protection against time-wait assasination
+#### 10.2.3 Enable protection against time-wait assasination
 In networking, when a TCP connection is closed, it enters the TIME-WAIT state for a certain period. This period is designed to ensure that any delayed or out-of-order packets related to the closed connection are handled properly. RFC 1337 identifies potential security risks during this TIME-WAIT period, specifically related to the reuse of the same tuple of IP addresses and port numbers.
 Based on the recommendations outlined in RFC 1337, enable follwing setting to protect against time-wait assassination by dropping [RST packets](## "The Reset packet is employed to terminate an established TCP connection abruptly or to indicate an error condition.") for sockets in the time-wait state.
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.tcp_rfc1337" = mkForce 1;
 ```
-##### 10.1.2.4 Protection against IP Spoofing
+#### 10.2.4 Protection against IP Spoofing
 IP spoofing is a technique where an attacker sends IP packets from a false (or "spoofed") source address in order to deceive the recipient about the origin of the message. This technique is used to perform DoS or Man in the Middle attack. To prevent such attack, source validation is must for the packets received from all the interfaces. [Reverse Path Filtering](## "RP-Filter") helps prevent IP spoofing by checking the source address of incoming packets against the routing table to verify that the packet came from a legitimate source. Here is the setting you can use to enable RP filter.
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkForce 1;
   boot.kernel.sysctl."net.ipv4.conf.default.rp_filter" = mkForce 1;
 ```
-##### 10.1.2.5 Disable Redirect Acceptance
+#### 10.2.5 Disable Redirect Acceptance
 [ICMP](## "Internet Control Message Protocol") redirect messages are typically sent by routers to inform hosts that there is a more optimal route for a particular destination. When a host receives an ICMP Redirect message, it can update its routing table to use the suggested route. 
 It's worth noting that while ICMP redirect messages can be useful for optimizing routing in some scenarios, they can also be misused to perform Man in the middle attack. These configurations disable ICMP redirect acceptance and sending:
 
@@ -569,7 +566,7 @@ It's worth noting that while ICMP redirect messages can be useful for optimizing
   boot.kernel.sysctl."net.ipv4.conf.default.send_redirects" = mkForce 0;
 ```
 
-##### 10.1.2.6 Ignore source-routed IP packets
+#### 10.2.6 Ignore source-routed IP packets
 When source routing is enabled, the system accepts source-routed IP packets. In source routing, the sender of a packet can specify the route it should take through the network.
 Source routing can be misused for various attacks, including IP spoofing and other forms of packet manipulation. Disabling acceptance of source-routed packets is generally a good security practice.
 
@@ -578,21 +575,21 @@ Source routing can be misused for various attacks, including IP spoofing and oth
   boot.kernel.sysctl."net.ipv4.conf.default.accept_source_route" = mkForce 0;
 ```
 
-##### 10.1.2.7 Ignore ICMP echo requests
+#### 10.2.7 Ignore ICMP echo requests
 ICMP Echo Requests are commonly associated with the "ping" command, which is used to test the reachability of a host on an Internet Protocol (IP) network. This parameter is often used as a security measure to reduce the visibility of a system to potential attackers. 
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.icmp_echo_ignore_all" = mkForce 1;
 ```
 
-##### 10.1.2.8 Log Martian packets
+#### 10.2.8 Log Martian packets
 Martian packets are packets with source or destination addresses that are not routable or are reserved for special purposes. These packets are considered anomalous and may indicate a misconfiguration or potentially malicious activity. Kernel should log such packets to identify malicous activity.
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.conf.all.log_martians" = mkDefault true;
   boot.kernel.sysctl."net.ipv4.conf.default.log_martians" = mkDefault true;
 ```
-##### 10.1.2.9 Ignore bogus ICMP error responses
+#### 10.2.9 Ignore bogus ICMP error responses
 Bogus ICMP error responses could be generated by misconfigured or malicious devices and may not accurately reflect the state of the network. Ignoring these responses can be a security measure to prevent potential information leakage or exploitation
 
 ```Nix
@@ -603,10 +600,7 @@ Bogus ICMP error responses could be generated by misconfigured or malicious devi
 
 
 ### References:
-https://dataswamp.org/~solene/2022-01-13-nixos-hardened.html
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
-https://sourcegraph.com/github.com/kamadorueda/nixel@a4d7ccfd2a5ce28b6ffdc2ed0dd3f6c339b2357f/-/blob/tests/inputs/nixpkgs/nixos/modules/profiles/hardened.nix
-https://sourcegraph.com/github.com/lukebfox/nix-configs@6e02889cd5c8b8c9054a82650c96a0ffc5076126/-/blob/profiles/nixos/hardened/default.nix
 
   security.apparmor.enable = true;
   security.polkit.enable = true;
