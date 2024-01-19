@@ -484,6 +484,43 @@ userfaultfd() system call is a Linux kernel feature that provides a mechanism fo
   boot.kernel.sysctl."vm.unprivileged_userfaultfd" = mkForce 0;
 ```
 
+##### 10.1.1.9 Disable kexec() system call
+The kexec system call is allows a user-space process to load and execute a new kernel from within an already running kernel, without the need to reboot the system. This can be useful for tasks such as kernel debugging, testing, or updating the kernel without a full system restart. This can be abused to load a malicious kernel. It is recommended to disable this system call.
+
+```Nix
+  boot.kernel.sysctl."kernel.kexec_load_disabled" = mkForce 1;
+```
+
+##### 10.1.1.9 Restrict/Disable SysRq
+The SysRq key on a computer keyboard has some powerful but risky debugging features that regular users can access. This is not just a concern for situations where someone has physical access to the computer; it can also be a problem if someone tries to use it remotely. By adjusting a setting called sysctl, you can limit a user's ability to use the SysRq key to only perform a secure action key, which is essential for securely accessing the root (administrator) account. Alternatively, you can set the sysctl value to 0 to completely turn off the SysRq key functionality.
+
+```Nix
+  boot.kernel.sysctl."kernel.kexec_load_disabled" = mkForce 1;
+```
+
+Here is the list of possible values:
+
+Value | Description
+------|------
+0     | Disable sysrq completely
+1     | Enable all functions of sysrq
+2     | Enable control of console logging level
+4     | Enable control of keyboard (SAK, unraw)
+8     | Enable debugging dumps of processes etc.
+16    | Enable sync command
+32    | Enable remount read-only
+64    | Enable signalling of processes (term, kill, oom-kill)
+128   | Allow reboot/poweroff
+256   | Allow nicing of all RT tasks
+
+##### 10.1.1.10 Disable user namespace cloning for unprivileged users
+User namespaces allow unprivileged users to create isolated environments with their own UID and GID mappings, namespaces, and capabilities. This is useful for creating containers and other forms of process isolation.
+This can make vulnerabilities in the Linux kernel much more easily exploitable. If you don't need, disable it.
+
+```Nix
+  boot.kernel.sysctl."kernel.unprivileged_userns_clone" = mkForce 0;
+```
+
 
   # Enable strict reverse path filtering (that is, do not attempt to route
   # packets that "obviously" do not belong to the iface's network; dropped
