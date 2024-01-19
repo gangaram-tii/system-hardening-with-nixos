@@ -520,11 +520,39 @@ This can make vulnerabilities in the Linux kernel much more easily exploitable. 
 ```Nix
   boot.kernel.sysctl."kernel.unprivileged_userns_clone" = mkForce 0;
 ```
+#### 10.1.2 Network Security
 
+##### 10.1.2.1 Disable IPv6
+If you're not using IPv6 or the [dual stack](## "Coexistence of both IPv4 and IPv6 on the same network infrastructure."), it's a good idea to turn off IPv6. It will reduce the attack surface.
+
+```Nix
+  boot.kernel.sysctl."net.ipv6.conf.all.disable_ipv6" = mkForce 1;
+  boot.kernel.sysctl."net.ipv6.conf.default.disable_ipv6" = mkForce 1;
+  boot.kernel.sysctl."net.ipv6.conf.lo.disable_ipv6" = mkForce 1;
+```
+
+##### 10.1.2.2 Prevent SYN Flooding
+When a device initiates a TCP connection, it sends a [SYN]("Synchronize") packet to the server. The server, in response, sends a [SYN-ACK]("synchronize-acknowledge") packet and awaits an [ACK]("acknowledge") packet from the client to complete the connection. In a SYN flood attack, an attacker sends a large number of SYN packets without intending to complete the connections. This can overwhelm the server's resources and lead to a [DoS]("denial of service") attack.
+SYN cookies designed to help protect against such DoS attacks. Follwing settings are recommended to enable SYN cookies:
+
+```Nix
+  boot.kernel.sysctl."net.ipv4.tcp_syncookies" = mkForce 1;
+  boot.kernel.sysctl."net.ipv4.tcp_syn_retries" = mkForce 2;
+  boot.kernel.sysctl."net.ipv4.tcp_synack_retries" = mkForce 2;
+  boot.kernel.sysctl."net.ipv4.tcp_max_syn_backlog" = mkForce 4096;
+```
+
+##### 10.1.2.3 Enable protection against time-wait assasination
+In networking, when a TCP connection is closed, it enters the TIME-WAIT state for a certain period. This period is designed to ensure that any delayed or out-of-order packets related to the closed connection are handled properly. RFC 1337 identifies potential security risks during this TIME-WAIT period, specifically related to the reuse of the same tuple of IP addresses and port numbers.
+Based on the recommendations outlined in RFC 1337, enable follwing setting to protect against time-wait assassination by dropping [RST packets]("The Reset packet is employed to terminate an established TCP connection abruptly or to indicate an error condition.") for sockets in the time-wait state.
+
+```Nix
+  boot.kernel.sysctl."net.ipv4.tcp_rfc1337" = mkForce 1;
+```
 
   # Enable strict reverse path filtering (that is, do not attempt to route
-  # packets that "obviously" do not belong to the iface's network; dropped
-  # packets are logged as martians).
+  packets that "obviously" do not belong to the iface's network; dropped
+  packets are logged as martians).
   boot.kernel.sysctl."net.ipv4.conf.all.log_martians" = mkDefault true;
   boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkDefault "1";
   boot.kernel.sysctl."net.ipv4.conf.default.log_martians" = mkDefault true;
