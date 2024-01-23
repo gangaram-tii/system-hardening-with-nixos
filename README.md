@@ -571,7 +571,7 @@ Based on the recommendations outlined in RFC 1337, enable follwing setting to pr
   boot.kernel.sysctl."net.ipv4.tcp_rfc1337" = mkForce 1;
 ```
 #### 10.2.4 Protection against IP Spoofing
-IP spoofing is a technique where an attacker sends IP packets from a false (or "spoofed") source address in order to deceive the recipient about the origin of the message. This technique is used to perform DoS or Man in the Middle attack. To prevent such attack, source validation is must for the packets received from all the interfaces. [Reverse Path Filtering](## "RP-Filter") helps prevent IP spoofing by checking the source address of incoming packets against the routing table to verify that the packet came from a legitimate source. Here is the setting you can use to enable RP filter.
+IP spoofing is a technique where an attacker sends IP packets from a false (or "spoofed") source address in order to deceive the recipient about the origin of the message. This technique is used to perform DoS or Man in the Middle attack. To prevent such attack, source validation is must for the packets received from all the interfaces. [RP-Filter](## "Reverse Path Filtering") helps prevent IP spoofing by checking the source address of incoming packets against the routing table to verify that the packet came from a legitimate source. Here is the setting you can use to enable RP filter.
 
 ```Nix
   boot.kernel.sysctl."net.ipv4.conf.all.rp_filter" = mkForce 1;
