@@ -749,23 +749,33 @@ You can blacklist kernel modules which are not audited for security. Here is the
 ### 11.7 Configure systemd 
 Configure systemd services to a 'safe' level with minimum exposure, make sure your service functionality is intact. Eposure of all the running services can be seen using below command:
 
-'''
+```
 $> systemd-analyze security
-'''
+```
 
 You can see profile of a service and how much a configuration is exposing the service to attacker using above command with service name as an additional parameter. For example the command for dbus service is:
 
-'''
+```
 $> systemd-analyze security debus.service
-'''
+```
 
 
 ## 12. Conclusion
 System security is a critical aspect of maintaining the confidentiality, integrity, and availability of information and resources within a computing environment. A robust security involves a combination of policies, technologies, and practices to safeguard against a wide range of threats, vulnerabilities, and potential attacks. 
 It is a cat-and-mouse game between attackers and security professionals, attackers continuously devise new methods to compromise systems, while security experts work to fortify against these evolving threats. This ongoing process is not a one-time task; rather, it requires regular system audits and security updates for both known attacks and newly discovered vulnerabilities.
 
+Security features in a Linux system can be managed through various avenues such as Kernel configuration, sysctl, kernel parameters, NixOS options, and more. It's important to note that selecting a security option in kernel configuration or NixOS is irreversible; to undo such a choice, one must undertake the process of recompiling the kernel or NixOS. In contrast, sysctl options can be modified at runtime, provided the user has privileged account access. It introduces a potential risk if attackers gain root privileges and manipulate sysctl. Adjusting kernel parameters through NixOS options requires a rebuild and system reboot. 
+
+Kernel configurations are particularly robust in terms of security, as any disabled feature cannot be exploited by attackers even if they attain root privileges. Therefore, when configuring the security mechanisms of a system, it's crucial to carefully select the appropriate method based on specific requirements and consider the trade-offs associated with each approach.
+
 ### References:
+
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
 
 https://tails.net/contribute/design/kernel_hardening/
+
+https://www.tenable.com/audits
+
+https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/profiles/hardened.nix
+
 
