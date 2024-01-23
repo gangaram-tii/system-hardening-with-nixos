@@ -680,19 +680,41 @@ F : Perform sanity checks on SLUB objects
     
 U : User tracking (free and alloc)
 
+#### 11.5.2 Scrub Memory
+Filling freed pages and heap objects with zeroes is a security practice known as "zeroing memory" or "memory scrubbing." This practice involves overwriting the contents of memory areas, such as freed pages or deallocated heap objects, with zeros before making them available for reuse. It prevents information leakage, and can be enabled using following kernel params:
+
+```Nix
+"init_memory=0"
+```
+
+#### 11.5.3 Randomize page allocation
+Page allocation randomization significantly improves the security of a system, specially against those attacks who exploit memory related vulnerability. Below is the param to enable this feature in kernel:
+
+```Nix
+"page_alloc.shuffle=1"
+```
+
+#### 11.5.4 Panic on uncorrectable memory access
+
+```Nix
+"mce=0"
+```
+
+Mostly useful for systems with ECC memory, if you set "mce" to 0, the kernel will panic if it detects any uncorrectable errors through the machine check exception system. The corrected errors will just be logged. The "mce=1" (default) will cause a SIGBUS signal for uncorrected errors. This means that malicious processes attempting to exploit hardware issues can keep trying repeatedly, facing only a SIGBUS signal when they fail. 
+
+#### 11.5.5 Randomize kernel stack offset
+
+```Nix
+"randomize_kstack_offset=on"
+```
+
+Kernel stack offset randomization helps enhance security by introducing randomness into the stack memory layout for each process's kernel stack. Randomizing the kernel stack offset makes it more difficult for attackers to exploit certain types of vulnerabilities that rely on knowledge of the stack layout. Without randomization, an attacker might be able to craft an exploit more easily, as they would know the exact location of critical data structures in the kernel stack.
 
 
-  boot.kernelParams = [
-    # Slab/slub sanity checks, redzoning, and poisoning
-    
+### 11.6 Avoid loading of insecure kernel modules
+You can blacklist kernel modules which are not audited for security. Here is the list of some modules:
 
-    # Overwrite free'd memory
-    "page_poison=1"
-
-    # Enable page allocator randomization
-    "page_alloc.shuffle=1"
-  ];
-
+```Nix
   boot.blacklistedKernelModules = [
     # Obscure network protocols
     "ax25"
@@ -722,13 +744,28 @@ U : User tracking (free and alloc)
     "sysv"
     "ufs"
   ];
+```
+
+### 11.7 Configure systemd 
+Configure systemd services to a 'safe' level with minimum exposure, make sure your service functionality is intact. Eposure of all the running services can be seen using below command:
+
+'''
+$> systemd-analyze security
+'''
+
+You can see profile of a service and how much a configuration is exposing the service to attacker using above command with service name as an additional parameter. For example the command for dbus service is:
+
+'''
+$> systemd-analyze security debus.service
+'''
 
 
+## 12. Conclusion
+System security is a critical aspect of maintaining the confidentiality, integrity, and availability of information and resources within a computing environment. A robust security involves a combination of policies, technologies, and practices to safeguard against a wide range of threats, vulnerabilities, and potential attacks. 
+It is a cat-and-mouse game between attackers and security professionals, attackers continuously devise new methods to compromise systems, while security experts work to fortify against these evolving threats. This ongoing process is not a one-time task; rather, it requires regular system audits and security updates for both known attacks and newly discovered vulnerabilities.
 
 ### References:
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
 
-  security.apparmor.enable = true;
-  security.polkit.enable = true;
-  security.sudo.enable = false;
-  security.pam.services.seraphybr.enableGnomeKeyring = true;
+https://tails.net/contribute/design/kernel_hardening/
+
