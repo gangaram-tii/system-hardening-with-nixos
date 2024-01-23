@@ -644,13 +644,47 @@ PTI separates the page tables used for user-space and kernel-space, preventing u
 ```Nix
   security.forcePageTableIsolation = mkDefault true;
 ```
+### 11.4 Flush L1 Data cache before entering guest vm
+Flushing the L1 data cache before entering a guest virtual machine is a performance optimization and security measure to ensure that the guest VM starts with a clean and consistent state. This is particularly relevant in scenarios where a hypervisor or virtual machine monitor (VMM) is managing multiple virtual machines on a system.
+Flushing the L1 data cache helps prevent potential information leakage or security vulnerabilities that could arise from remnants of data left in the cache from the host or other VMs.
 
+```Nix
 security.virtualisation.flushL1DataCache = mkDefault "always";
+```
+
+### 11.5 Adjust Kernel Params
+In NixOS kernel boot params can be passed using following options:
+
+```Nix
+ boot.kernelParams = [
+  "param1"
+  "param2"
+ ];
+```
+Here are some kernel parameters that can be used to strengthen security of a system.
+
+### 11.5.1 Enable SLUB debugger
+SLUB is responsible for the organization, allocation and freeing of objects from a [slab-cache](## "The slab cache is a memory management mechanism used in the Linux kernel to efficiently manage and allocate memory for kernel data structures."). It is a part of the Linux kernel's memory allocator, which handles dynamic memory allocation for various kernel objects. Memory-related vulnerabilities are common sources of security exploits. Bugs in the kernel's memory management, such as those related to SLUB or other allocators, could potentially lead to privilege escalation, information disclosure, or denial-of-service attacks. So it is important to enable SLUB debugger in order to identify and fix potential vulnerability.
+
+```Nix
+"slub_debug=FZPU"
+```
+
+This will enable following functionality in SLUB debugger:
+
+Z : Provide [RED (guard) zones](## "To detect out of bound access RED zones are created on both sides of the object. These RED zones are filled with markers to indicate the allocation state of an object. The RED zones of the allocated objects are filled with the value 0xcc and the RED zones of the free objects are filled with the value 0xbb. An out of bound access can change these marker values.") around SLUB objects
+    
+P : [Poisoning (object and padding)](## "Page poisoning, in the context of operating systems and memory management, is a technique used to detect and identify memory corruption or use-after-free vulnerabilities. It involves marking or poisoning pages of memory when they are freed or released, making it evident if a program attempts to access or modify memory that has already been deallocated.")
+    
+F : Perform sanity checks on SLUB objects
+    
+U : User tracking (free and alloc)
+
 
 
   boot.kernelParams = [
     # Slab/slub sanity checks, redzoning, and poisoning
-    "slub_debug=FZP"
+    
 
     # Overwrite free'd memory
     "page_poison=1"
