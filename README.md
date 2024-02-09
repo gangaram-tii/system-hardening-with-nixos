@@ -77,24 +77,22 @@ To enforce strong passwords in NixOS, one can use the pam_pwquality.so module. T
 Here is an example of how to configure pam_pwquality.so in NixOS:
 
 ~~~ Nix
-services.pam.services = {
-  passwd = {
-    text = ''
-      password required pam_pwquality.so retry=3 minlen=12 difok=6 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 enforce_for_root
-      password required pam_unix.so use_authtok shadow
-    '';
-  };
-};
-~~~
-
-Or
-
-~~~ Nix
-security.pam.services.passwd = {
-  enable = true;
-  extraConfig = ''
-    password required pam_pwquality.so retry=3 minlen=12 difok=6 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 enforce_for_root
-  '';
+security.pam.services.passwd.rules.password.pwquality = {
+  control = "required"; 
+  modulePath = "${pkgs.libpwquality.lib}/lib/security/pam_pwquality.so"; 
+  # order BEFORE pam_unix.so
+  order =  config.security.pam.services.passwd.rules.password.unix.order - 10;
+  settings = {
+    retry = 3;
+    #local_users_only = true;
+    minlen = 8;
+    difok = 6;
+    dcredit = -1;
+    ucredit = 1;
+    ocredit = -1;
+    lcredit = 1;
+    enforce_for_root = true;
+  }; 
 };
 ~~~
 
@@ -105,8 +103,10 @@ This configuration enforces the following password requirements:
 - At least one digit, one uppercase letter, and one lowercase letter
 - At least one special character
 - Passwords cannot contain the user’s name or username
-
 You can modify these settings to suit your needs.
+
+**Note:** This feature is unstable. 
+https://github.com/NixOS/nixpkgs/issues/287420
 
 ### 1.2 Enable Multifactor Authentication (MFA)
 NixOS provides following methods for MFA:
