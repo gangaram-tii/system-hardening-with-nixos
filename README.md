@@ -497,7 +497,7 @@ or
 The SysRq key on a computer keyboard has some powerful but risky debugging features that regular users can access. This is not just a concern for situations where someone has physical access to the computer; it can also be a problem if someone tries to use it remotely. By adjusting a setting called sysctl, you can limit a user's ability to use the SysRq key to only perform a secure action key, which is essential for securely accessing the root (administrator) account. Alternatively, you can set the sysctl value to 0 to completely turn off the SysRq key functionality.
 
 ```Nix
-  boot.kernel.sysctl."kernel.kexec_load_disabled" = mkForce 1;
+  boot.kernel.sysctl."kernel.sysrq" = mkForce 0;
 ```
 
 Here is the list of possible values:
