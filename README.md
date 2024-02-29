@@ -258,7 +258,7 @@ boot.kernelPatches = [
       name = "disable-usb-storage-config";
       patch = null;
       extraConfig = ''
-        USB_NET_DRIVERS n
+        USB_STORAGE n
       '';
     }
   ];
