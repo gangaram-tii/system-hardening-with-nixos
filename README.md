@@ -419,6 +419,10 @@ Kernel pointer are not hidded by default, it can be uncovered by reading content
 ```Nix
   boot.kernel.sysctl."kernel.kptr_restrict" = mkForce 2;
 ```
+When kptr_restrict is set to 0 (the default) the address is hashed before printing. (This is the equivalent to %p.)
+When kptr_restrict is set to (1), kernel pointers printed using the %pK format specifier will be replaced with 0’s unless the user has CAP_SYSLOG and effective user and group ids are equal to the real ids.
+When kptr_restrict is set to (2), kernel pointers printed using %pK will be replaced with 0’s regardless of privileges.
+
 #### 10.1.3 Disable bpf JIT compiler
 JIT spraying is an attack where the behavior of a Just-In-Time compiler is (ab)used to load an attacker-provided payload into an executable memory area of the operating system [3]. This is usually achieved by passing the payload instructions encoded as constants to the JIT compiler and then using a suitable OS bug to redirect execution into the payload code
 
@@ -431,6 +435,9 @@ eBPF exposes large attack surface. If eBPF JIT is need of the system then it mus
   boot.kernel.sysctl."kernel.unprivileged_bpf_disabled" = mkOverride 500 1;
   boot.kernel.sysctl."net.core.bpf_jit_harden" = mkForce 2;
 ```
+Values : 0 - disable JIT hardening (default value) 
+         1 - enable JIT hardening for unprivileged users only 
+         2 - enable JIT hardening for all users
 
 #### 10.1.4 Disable ftrace debugging
 Ftrace is an internal tracer designed to help out developers and designers of systems to find what is going on inside the kernel. It can be used for debugging or analyzing latencies and performance issues. Attackers can use these traces to gather sensitive information about the system to plan an attack.
@@ -444,6 +451,8 @@ Address space randomization increases the difficulty of performing a buffer over
 ```Nix
   boot.kernel.sysctl."kernel.randomize_va_space" = mkForce 2;
 ```
+When setting the value to 1, address space is randomized. This includes the positions of the stack itself, virtual dynamic shared object (VDSO) page, and shared memory regions. Setting the option to value 2 will be similar to 1, and add data segments as well.
+
 #### 10.1.6 Restrict core dump
 When a program experiences a core dump, it creates a file containing a snapshot of its memory at the time of the crash. This file, known as a core dump file, aids developers in diagnosing and fixing the underlying issues leading to the program's failure.
 However, it's crucial to recognize that in certain scenarios, core dump files can pose a security risk. Attackers may leverage these files to gain insights into the program's memory layout, potentially revealing vulnerabilities that could be exploited for unauthorized access or other malicious purposes. Therefore, managing and securing core dump files is an essential aspect of overall system security. 
